@@ -1,0 +1,19 @@
+version: "3.3"
+services:
+
+  nginx:
+    image: nginx
+
+  php:
+    build:
+      ./docker/php
+
+  mysql:
+    image: mariadb
+    volumes:
+    - ./docker/mysql:/etc/mysql/conf.d/
+    - ./docker/tmp:/opt/tmp
+    restart: always
+
+  rabbit:
+    image: rabbitmq

@@ -1,0 +1,35 @@
+FROM php:7.2-fpm
+ENV ACCEPT_EULA=Y
+
+# Microsoft SQL Server Prerequisites
+RUN apt-get update \
+    && apt-get install -y gnupg \
+    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/debian/9/prod.list \
+        > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get install -y --no-install-recommends \
+        locales \
+        apt-transport-https \
+    && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
+    && locale-gen \
+    && apt-get update \
+    && apt-get -y install \
+        unixodbc-dev \
+        msodbcsql17 \
+        libpng-dev \
+        libxml2-dev \
+        mc
+
+
+RUN docker-php-ext-install mbstring pdo pdo_mysql gd soap xml bcmath intl \
+    && pecl install sqlsrv pdo_sqlsrv xdebug \
+    && docker-php-ext-enable sqlsrv pdo_sqlsrv xdebug
+
+COPY php.ini /usr/local/etc/php/
+COPY .zshrc.dist /usr/local/custom/
+
+WORKDIR /code
+
+RUN apt-get install -y zsh git wget sudo \
+    && sudo sh -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)" \
+    && cp /usr/local/custom/.zshrc.dist /root/.zshrc
